@@ -83,7 +83,7 @@ module.exports = class Notification extends EventEmitter {
         this.window = new BrowserWindow({
             show: false,
             width: this.options.width,
-            height: 10,
+            height: 100,
             x: 0,
             y: 0,
             acceptFirstMouse: true,
@@ -102,7 +102,7 @@ module.exports = class Notification extends EventEmitter {
 
         notifications.push(this);
 
-        this.window.loadURL(path.join(__dirname, 'notification.html'));
+        this.window.loadFile(path.resolve(__dirname, 'notification.html'));
 
         this.window.webContents.on('did-finish-load', function () {
             this.window.webContents.send("setTheme", this.options.theme);
