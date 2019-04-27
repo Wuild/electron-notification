@@ -1,0 +1,30 @@
+{
+  "name": "@wuild/electron-notification",
+  "version": "1.0.0",
+  "description": "A cross platform notification plugin for electron  \r It uses BrowserWindows for the notifications, it also resizes the height of the window dynamically after the content size  \r The notifications requires the electron screen api which cannot be run before [app.ready](https://electronjs.org/docs/api/app#event-ready)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Wuild",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^4.17.11"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Wuild/electron-notification.git"
+  },
+  "keywords": [
+    "electron",
+    "notification",
+    "osx",
+    "windows",
+    "linux"
+  ],
+  "bugs": {
+    "url": "https://github.com/Wuild/electron-notification/issues"
+  },
+  "homepage": "https://github.com/Wuild/electron-notification#readme"
+}
