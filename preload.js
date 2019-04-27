@@ -18,9 +18,35 @@ document.addEventListener('DOMContentLoaded', function () {
         remote.getCurrentWindow().close();
     });
 
-    document.getElementById("body").addEventListener("click", function () {
+    let singelClick = function () {
         ipcRenderer.send("notification.click", remote.getCurrentWindow().id);
-    });
+    };
+
+    let dblClick = function () {
+        ipcRenderer.send("notification.dblclick", remote.getCurrentWindow().id);
+    };
+
+    let makeDoubleClick = function(e) {
+
+        let clicks = 0,
+            timeout;
+
+        return function (e) {
+            clicks++;
+            if (clicks === 1) {
+                timeout = setTimeout(function () {
+                    singelClick(e);
+                    clicks = 0;
+                }, 200);
+            } else {
+                clearTimeout(timeout);
+                dblClick(e);
+                clicks = 0;
+            }
+        };
+    };
+
+    document.getElementById("body").addEventListener("click", makeDoubleClick());
 });
 
 ipcRenderer.on("setTitle", function (sender, data) {

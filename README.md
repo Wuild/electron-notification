@@ -1,11 +1,13 @@
 # electron-notification
 A cross platform notification plugin for electron  
-It uses BrowserWindows for the notifications, it also resizes the height of the window dynamically after the content size  
+It uses BrowserWindows for the notifications, it also resizes the height of the window dynamically depending of the content size  
 The notifications requires the electron screen api which cannot be run before [app.ready](https://electronjs.org/docs/api/app#event-ready)
 
 ## TODO
 * Write a better README
 * Implement custom styles
+* Left and right icons
+* Sound
 
 ## Installation
 Install with npm:
@@ -40,6 +42,7 @@ Name |  description
 show | When the notification is shown
 close | When the notification is closed
 click | When the notification is clicked
+dblclick | When the notification is double clicked
 resize | When the notification is resized
 
 #### Methods
@@ -75,6 +78,10 @@ app.on("ready", function () {
     
     note2.on("click", function(){
        console.log("Notification has been clicked"); 
+    });
+    
+    note2.on("dblclick", function(){
+        console.log("Notification has been doubled clicked"); 
     });
     
     note2.show();

@@ -12,6 +12,14 @@ ipcMain.on("notification.click", function (sender, data) {
     });
 });
 
+ipcMain.on("notification.dblclick", function (sender, data) {
+    notifications.forEach(function (note) {
+        if (data === note.window.id) {
+            note.emit("dblclick");
+        }
+    });
+});
+
 module.exports = class Notification extends EventEmitter {
 
     constructor(options) {
