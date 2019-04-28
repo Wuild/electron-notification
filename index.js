@@ -1,8 +1,11 @@
 const EventEmitter = require("events");
 const {BrowserWindow, ipcMain} = require("electron");
 const path = require("path");
-const {filter} = require("lodash");
+const {filter, forEach} = require("lodash");
 let notifications = [];
+let queue = [];
+
+let maxNotifications = 3;
 
 ipcMain.on("notification.click", function (sender, data) {
     notifications.forEach(function (note) {
@@ -21,34 +24,162 @@ ipcMain.on("notification.dblclick", function (sender, data) {
 });
 
 module.exports = class Notification extends EventEmitter {
-
     constructor(options) {
         super();
 
         this.options = Object.assign({
-            title: undefined,
-            body: undefined,
+            title: false,
+            body: false,
             position: "top-right",
             background: "#2d3135",
             theme: "light",
             width: 560,
             icon: path.resolve(__dirname, 'icon.svg'),
-            timeout: undefined,
-            bottom: 15
+            iconPosition: "left",
+            timeout: false,
+            sound: false,
+            bottom: 5,
+            style: {
+                base: {
+                    body: {
+                        display: "flex",
+                        flexDirection: "row",
+                        flex: 1,
+                        minHeight: "1px",
+                        height: "100%"
+                    },
+
+                    close: {
+                        position: "absolute",
+                        zIndex: 10,
+                        right: "5px",
+                        top: 0,
+                        padding: "7px"
+                    },
+
+                    sidebar: {
+                        display: "flex",
+                        width: "150px",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        flexGrow: 0,
+                        padding: "17px"
+                    },
+
+                    container: {
+                        flex: 1,
+                        minHeight: "1px",
+                        padding: "15px"
+                    },
+
+                    title: {
+                        padding: 0,
+                        margin: 0
+                    },
+                    content: {
+                        overflow: "visible"
+                    }
+                },
+
+                dark: {
+                    sidebar: {
+                        backgroundColor: "#262a2e"
+                    },
+                    container: {
+                        backgroundColor: "#2d3135",
+                        color: "hsla(0, 0%, 100%, .6)",
+                    },
+                    close: {
+                        color: "hsla(0, 0%, 100%, .6)",
+                    }
+                },
+
+                light: {
+                    sidebar: {
+                        backgroundColor: "#f6f6f6"
+                    },
+                    container: {
+                        backgroundColor: "#fff",
+                        color: "#2c2c2c",
+                    },
+                    close: {
+                        color: "#000",
+                    }
+                }
+            }
         }, options);
 
         this.position = this.options.position;
 
-        this.window = null;
+        this.window = new BrowserWindow({
+            show: false,
+            width: this.options.width,
+            height: 30,
+            x: 0,
+            y: 0,
+            acceptFirstMouse: true,
+            backgroundColor: this.options.background,
+            frame: false,
+            skipTaskbar: true,
+            alwaysOnTop: true,
+            movable: false,
+            transparent: true,
+            resizable: false,
+            focusable: false,
+            webPreferences: {
+                nodeIntegration: true,
+                preload: path.resolve(__dirname, 'preload.js')
+            }
+        });
+
+        this.window.on("show", function () {
+            this.emit("show");
+        }.bind(this));
+
+        this.window.on("resize", function () {
+            this._calculatePosition(this.position);
+            this.emit("resize");
+        }.bind(this));
+
+        this.window.on("close", function () {
+            notifications.splice(notifications.indexOf(this), 1);
+
+            if (queue.length > 0) {
+                queue[0].show();
+                queue.splice(0, 1);
+            }
+
+            this._calculatePosition(this.position);
+            this.emit("close");
+        }.bind(this));
     }
 
+    static setMaxNotifications(amount) {
+        maxNotifications = amount;
+    }
+
+    /**
+     * Close all notifications
+     */
     static closeAll() {
-        notifications.forEach(function (note) {
-            if (note.window && !note.window.isDestroyed())
-                note.window.close();
+        let windowsToClose = [];
+        queue.length = 0;
+        // Have to store the windows in another array due to array manipulation when the notification closes
+        forEach(notifications, function (note) {
+            windowsToClose.push(note);
+        });
+
+        forEach(windowsToClose, function (note) {
+            note.close();
         });
     }
 
+    /**
+     * Calculate all notification positions at "position"
+     * @param position
+     * @private
+     */
     _calculatePosition(position) {
         let {screen} = require("electron");
 
@@ -82,71 +213,38 @@ module.exports = class Notification extends EventEmitter {
         }.bind(this));
     }
 
+    /**
+     * Close the notification
+     */
     close() {
-        this.window.close();
+        if (!this.window.isDestroyed())
+            this.window.close();
     }
 
+    /**
+     * Show the notification
+     */
     show() {
+        // If notification list is full add to queue
+        if (notifications.length < maxNotifications) {
+            // Add notification instance to array
+            notifications.push(this);
+            this.window.loadFile(path.resolve(__dirname, 'notification.html'));
 
-        this.window = new BrowserWindow({
-            show: false,
-            width: this.options.width,
-            height: 100,
-            x: 0,
-            y: 0,
-            acceptFirstMouse: true,
-            backgroundColor: this.options.background,
-            frame: false,
-            skipTaskbar: true,
-            alwaysOnTop: true,
-            movable: false,
-            transparent: true,
-            resizable: false,
-            webPreferences: {
-                nodeIntegration: true,
-                preload: path.resolve(__dirname, 'preload.js')
-            }
-        });
+            this.window.webContents.on('did-finish-load', function () {
+                this.window.webContents.send("setObject", this.options);
+                this.window.show();
+            }.bind(this));
 
-        notifications.push(this);
-
-        this.window.loadFile(path.resolve(__dirname, 'notification.html'));
-
-        this.window.webContents.on('did-finish-load', function () {
-            this.window.webContents.send("setTheme", this.options.theme);
-            if (this.options.icon)
-                this.window.webContents.send("setIcon", this.options.icon);
-
-            if (this.options.title)
-                this.window.webContents.send("setTitle", this.options.title);
-
-            if (this.options.body)
-                this.window.webContents.send("setContent", this.options.body);
-
-            this.window.show();
-        }.bind(this));
-
-        this.window.on("show", function () {
-            this.emit("show");
-        }.bind(this));
-
-        this.window.on("resize", function () {
-            this._calculatePosition(this.position);
-            this.emit("resize");
-        }.bind(this));
-
-        this.window.on("close", function () {
-            notifications.splice(notifications.indexOf(this), 1);
-            this._calculatePosition(this.position);
-            this.emit("close");
-        }.bind(this));
-
-        if (this.options.timeout !== undefined)
-            setTimeout(function () {
-                if (this.window && !this.window.isDestroyed())
-                    this.window.close();
-            }.bind(this), this.options.timeout);
-
+            // Add close timeout of time is set.
+            if (this.options.timeout)
+                setTimeout(function () {
+                    if (this.window && !this.window.isDestroyed())
+                        this.window.close();
+                }.bind(this), this.options.timeout);
+        } else {
+            queue.push(this);
+        }
     }
 
 };

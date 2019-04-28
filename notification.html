@@ -16,7 +16,6 @@
             font-family: -apple-system, BlinkMacSystemFont, segoe ui, roboto, oxygen, ubuntu, cantarell, fira sans, droid sans, helvetica neue, sans-serif;
             font-size: 1rem;
             line-height: 1.6;
-            color: #2f2f2f;
             user-select: none;
             overflow: hidden;
             padding: 0;
@@ -24,71 +23,17 @@
             height: 100%;
         }
 
-        body.theme-dark #sidebar {
-            background: #262a2e;
-        }
-
-        body.theme-dark #container {
-            background: #2d3135;
-            color: hsla(0, 0%, 100%, .6);
-        }
-
-        body.theme-dark #close {
-            color: hsla(0, 0%, 100%, .6);
-        }
-
         #content {
             overflow: visible;
-        }
-
-        #body {
-            display: flex;
-            flex-direction: row;
-            flex: 1;
-            min-height: 1px;
-            height: 100%;
-        }
-
-        #close {
-            position: absolute;
-            z-index: 10;
-            right: 5px;
-            top: 0;
-            padding: 7px;
-            color: #000;
-            opacity: .6;
         }
 
         #close:hover {
             opacity: 1;
         }
 
-        #sidebar {
-            display: flex;
-            width: 150px;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            flex-grow: 0;
-            background: #f6f6f6;
-            padding: 17px;
-        }
-
         #sidebar img {
             max-width: 64px;
             height: auto;
-        }
-
-        #container {
-            flex: 1;
-            min-height: 1px;
-            padding: 15px;
-            background: #fff;
-        }
-
-        #title {
-            padding: 0;
-            margin: 0;
         }
     </style>
 </head>
