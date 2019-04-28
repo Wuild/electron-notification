@@ -1,6 +1,6 @@
 {
   "name": "@wuild/electron-notification",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A cross platform notification plugin for electron  \r It uses BrowserWindows for the notifications, it also resizes the height of the window dynamically after the content size  \r The notifications requires the electron screen api which cannot be run before [app.ready](https://electronjs.org/docs/api/app#event-ready)",
   "main": "index.js",
   "scripts": {
